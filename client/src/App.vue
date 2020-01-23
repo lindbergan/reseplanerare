@@ -6,7 +6,9 @@
         </v-system-bar>
         <v-app-bar max-height="48">
             <v-app-bar-nav-icon></v-app-bar-nav-icon>
-            <v-toolbar-title><h3 class="title">{{ title }}</h3></v-toolbar-title>
+            <v-toolbar-title
+                ><h3 class="title">{{ title }}</h3></v-toolbar-title
+            >
             <v-spacer></v-spacer>
             <v-btn depressed text icon to="/" @click="title = 'Start'">
                 <v-icon>fas fa-home</v-icon>

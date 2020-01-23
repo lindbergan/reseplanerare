@@ -120,10 +120,6 @@ import TripComponent from '../components/TripComponent.vue'
 import TripItem from '../components/TripItem.vue'
 import { Trip, Location, LegElement, ErrorResponse } from '../types'
 import uuidv4 from 'uuid/v4'
-if (process.env.NODE_ENV === 'development') {
-    const jsonTrip = require('../offline/trip.json')
-    const searchJson = require('../offline/location.json')
-}
 
 export default Vue.extend({
     name: 'home',
@@ -143,7 +139,6 @@ export default Vue.extend({
             toSearch: undefined as undefined | string,
             toSelect: undefined as undefined | Location,
             toItems: [] as Location[],
-            useRealFetch: true as boolean,
             fromTimer: undefined as undefined | number,
             toTimer: undefined as undefined | number,
             error: false as boolean,
@@ -169,55 +164,41 @@ export default Vue.extend({
         debounceQuerying(v: string, isFrom: boolean): number {
             const debounceMillis = 1000
             const url = `https://api.vasttrafik.se/bin/rest.exe/v2/location.name?input=${v}&format=json`
-            return setTimeout(() => {
-                console.log('is queryed', v)
-                if (this.useRealFetch) {
-                    this.fetchData(url)
-                        .then(res => res.json())
-                        .then(res => {
-                            if (res.fault) {
-                                console.log(res.fault.message)
-                                this.showErrorMessage(res)
+            return window.setTimeout(() => {
+                this.fetchData(url)
+                    .then(res => res.json())
+                    .then(res => {
+                        if (res.fault) {
+                            this.showErrorMessage(res)
+                            this.fromLoading = false
+                            this.toLoading = false
+                        } else {
+                            if (this.error) this.hideAlert()
+                            if (isFrom) {
+                                this.fromItems =
+                                    res['LocationList']['StopLocation']
                                 this.fromLoading = false
-                                this.toLoading = false
                             } else {
-                                if (this.error) this.hideAlert()
-                                if (isFrom) {
-                                    this.fromItems =
-                                        res['LocationList']['StopLocation']
-                                    this.fromLoading = false
-                                } else {
-                                    this.toItems =
-                                        res['LocationList']['StopLocation']
-                                    this.toLoading = false
-                                }
+                                this.toItems =
+                                    res['LocationList']['StopLocation']
+                                this.toLoading = false
                             }
-                        })
-                        .catch(err => this.showErrorMessage(err))
-                } else {
-                    if (isFrom) {
-                        this.fromItems =
-                            searchJson['LocationList']['StopLocation']
-                        this.fromLoading = false
-                    } else {
-                        this.toItems =
-                            searchJson['LocationList']['StopLocation']
-                        this.toLoading = false
-                    }
-                }
+                        }
+                    })
+                    .catch(err => this.showErrorMessage(err))
             }, debounceMillis)
         },
         querySelections(v: string, isFrom: boolean) {
             if (isFrom) {
                 this.fromLoading = true
                 if (this.fromTimer) {
-                    clearTimeout(this.fromTimer)
+                    window.clearTimeout(this.fromTimer)
                 }
                 this.fromTimer = this.debounceQuerying(v, isFrom)
             } else {
                 this.toLoading = true
                 if (this.toTimer) {
-                    clearTimeout(this.toTimer)
+                    window.clearTimeout(this.toTimer)
                 }
                 this.toTimer = this.debounceQuerying(v, isFrom)
             }
@@ -234,11 +215,7 @@ export default Vue.extend({
             }
         },
         fetchNewTrips(): void {
-            if (
-                this.useRealFetch &&
-                this.fromSelect !== undefined &&
-                this.toSelect !== undefined
-            ) {
+            if (this.fromSelect !== undefined && this.toSelect !== undefined) {
                 const originId = this.fromSelect.id
                 const destId = this.toSelect.id
                 const url = `https://api.vasttrafik.se/bin/rest.exe/v2/trip?format=json&originId=${originId}&destId=${destId}`
@@ -246,11 +223,8 @@ export default Vue.extend({
                     .then(res => res.json())
                     .then(res => {
                         this.trips = res['TripList']['Trip']
-                        console.log('Fetched new trips')
                     })
                     .catch(err => this.showErrorMessage(err))
-            } else {
-                this.trips = jsonTrip['TripList']['Trip']
             }
         },
         getRandomToken() {
