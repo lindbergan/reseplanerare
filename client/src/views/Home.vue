@@ -121,6 +121,7 @@ import TripItem from '../components/TripItem.vue'
 import jsonTrip from '../offline/trip.json'
 import searchJson from '../offline/location.json'
 import { Trip, Location, LegElement, ErrorResponse } from '../types'
+import uuidv4 from "uuid/v4"
 
 export default Vue.extend({
     name: 'home',
@@ -251,6 +252,9 @@ export default Vue.extend({
             }
         },
         getRandomToken() {
+            return uuidv4()
+        },
+        getBasicAuthentication() {
             const key = process.env.VUE_APP_KEY
             const secret = process.env.VUE_APP_SECRET
             return window.btoa(`${key}:${secret}`)
@@ -267,7 +271,7 @@ export default Vue.extend({
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        Authorization: `Basic ${token}`,
+                        Authorization: `Basic ${this.getBasicAuthentication()}`,
                     },
                 }
             )
