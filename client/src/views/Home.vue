@@ -118,10 +118,12 @@
 import Vue from 'vue'
 import TripComponent from '../components/TripComponent.vue'
 import TripItem from '../components/TripItem.vue'
-import jsonTrip from '../offline/trip.json'
-import searchJson from '../offline/location.json'
 import { Trip, Location, LegElement, ErrorResponse } from '../types'
-import uuidv4 from "uuid/v4"
+import uuidv4 from 'uuid/v4'
+if (process.env.NODE_ENV === 'development') {
+    const jsonTrip = require('../offline/trip.json')
+    const searchJson = require('../offline/location.json')
+}
 
 export default Vue.extend({
     name: 'home',
